@@ -3,31 +3,42 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# 1. Создаём приложение
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'any-secret-key-you-choose'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+# 2. Настраиваем — только из env, без хардкода
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-fallback')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# 3. Инициализируем расширения
 db = SQLAlchemy(app)
 
-# Initiate the LoginManager class
 login_manager = LoginManager()
 login_manager.init_app(app)
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    #return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
-# Create DB
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     name = db.Column(db.String(1000))
-# db.create_all()
 
+
+# 4. Создаём таблицы в контексте приложения (вместо закомментированного db.create_all())
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def home():
@@ -98,6 +109,10 @@ def logout():
 def download():
     return send_from_directory(directory='static/files', path="cheat_sheet.pdf")
 
+
+@app.route('/health')
+def health():
+    return {'status': 'ok'}, 200
 
 if __name__ == "__main__":
     app.run(debug=True)
