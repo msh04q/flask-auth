@@ -1,0 +1,11 @@
+services:
+  web:
+    build: .
+    image: flask-auth:local
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      - ./instance:/app/instance
+    restart: unless-stopped
