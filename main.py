@@ -35,6 +35,7 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(100))
     name = db.Column(db.String(1000))
 
+
 # Убедимся, что папка instance/ существует (важно для Docker)
 os.makedirs(os.path.join(os.path.dirname(__file__), "instance"), exist_ok=True)
 
