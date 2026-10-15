@@ -13,7 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN chown -R app:app /app
+# создаём instance заранее и выставляем права одним chown
+RUN mkdir -p /app/instance && chown -R app:app /app
 USER app
 
 ENV FLASK_APP=main.py
