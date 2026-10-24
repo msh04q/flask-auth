@@ -81,7 +81,13 @@
         user: deployer
         commands: ALL
         nopassword: true
-  
+ 
+    - name: Add deployer to docker group
+      ansible.builtin.user:
+        name: deployer
+        groups: docker
+        append: true
+ 
     # 5. Создание каталога приложения
     - name: Create app directory
       file:
