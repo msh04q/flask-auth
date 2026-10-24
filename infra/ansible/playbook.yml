@@ -57,14 +57,8 @@
         state: enabled
         policy: deny
         direction: incoming
-
-    # 3. Создание каталога приложения
-    - name: Create app directory
-      file:
-        path: /opt/flask-auth
-        state: directory
-        mode: '0755'
-    # 4. Создаём пользователя для деплоя
+    
+    # 3. Создаём пользователя для деплоя
     - name: Create deploy user
       ansible.builtin.user:
         name: deployer
@@ -73,7 +67,7 @@
         groups: sudo
         append: true
 
-    # 5. Добавляем публичный ключ для deployer
+    # 4. Добавляем публичный ключ для deployer
     - name: Add SSH key for deployer
       ansible.posix.authorized_key:
         user: deployer
@@ -87,7 +81,16 @@
         user: deployer
         commands: ALL
         nopassword: true
-
+  
+    # 5. Создание каталога приложения
+    - name: Create app directory
+      file:
+        path: /opt/flask-auth
+        state: directory
+        owner: deployer
+        group: deployer
+        mode: '0755'
+ 
     # 6. Запрещаем прямой SSH-вход для root
     - name: Disable root SSH login
       ansible.builtin.lineinfile:
