@@ -377,7 +377,7 @@ git push origin main
 
 Статус CI/CD:
 
-https://github.com/msh04q/msh04q-flask-auth/actions
+https://github.com/msh04q/flask-auth/actions
 
 Если деплой не запускается, проверьте триггеры workflow, имена GitHub Secrets, права доступа к GHCR и SSH-доступ к серверу.
 
@@ -385,19 +385,18 @@ https://github.com/msh04q/msh04q-flask-auth/actions
 
 ## Проверка работоспособности сервера
 
-Для приведённых ниже команд используется тестовый VPS:
+Все команды ниже выполняются **на самом сервере** после входа по SSH:
 
-```text
-129.101.xxx.xx
+```bash
+ssh -i ~/.ssh/flask_auth_deploy deployer@129.101.xxx.xx
 ```
 
-Путь к Compose-файлу и имя сервиса должны соответствовать реальной конфигурации сервера.
+Дальше работаем в этой сессии, без повторных `ssh` на каждую команду. Путь к Compose-файлу и имя сервиса должны соответствовать реальной конфигурации сервера.
 
 ### 1. Состояние контейнера
 
 ```bash
-ssh -i ~/.ssh/flask_auth_deploy deployer@129.101.xxx.xx \
-  "docker compose -f /opt/flask-auth/docker-compose.yml ps"
+docker compose -f /opt/flask-auth/docker-compose.yml ps
 ```
 
 Проверьте, что контейнер запущен. Если настроен Docker Healthcheck, его состояние должно быть `healthy`.
@@ -405,7 +404,7 @@ ssh -i ~/.ssh/flask_auth_deploy deployer@129.101.xxx.xx \
 ### 2. Проверка health endpoint
 
 ```bash
-curl -i http://129.101.xxx.xx:5000/health
+curl -i http://127.0.0.1:5000/health
 ```
 
 Ожидаемый результат при успешной проверке:
@@ -416,7 +415,7 @@ curl -i http://129.101.xxx.xx:5000/health
 ### 3. Проверка главной страницы
 
 ```bash
-curl -I http://129.101.xxx.xx:5000/
+curl -I http://127.0.0.1:5000/
 ```
 
 Ожидается HTTP-статус `200 OK`.
@@ -426,8 +425,7 @@ curl -I http://129.101.xxx.xx:5000/
 Каталог `/var/lib/docker/volumes/` принадлежит `root`, поэтому смотреть его с хоста под `deployer` не получится. Проверяйте состояние базы **изнутри контейнера**:
 
 ```bash
-ssh -i ~/.ssh/flask_auth_deploy deployer@129.101.xxx.xx \
-  "docker compose -f /opt/flask-auth/docker-compose.yml exec web ls -la /app/instance"
+docker compose -f /opt/flask-auth/docker-compose.yml exec web ls -la /app/instance
 ```
 
 Если приложение работает под пользователем с UID/GID `1000:1000`, файл базы (например, `users.db`) должен принадлежать `app:app`. Наличие файла и его размер больше нуля означают, что права на volume настроены корректно.
@@ -435,17 +433,18 @@ ssh -i ~/.ssh/flask_auth_deploy deployer@129.101.xxx.xx \
 ### 5. Проверка логов
 
 ```bash
-ssh -i ~/.ssh/flask_auth_deploy deployer@129.101.124.32 \
-  "docker compose -f /opt/flask-auth/docker-compose.yml logs --tail=50 web"
+docker compose -f /opt/flask-auth/docker-compose.yml logs --tail=50 web
 ```
 
 Проверьте отсутствие ошибок запуска, подключения к базе данных и записи файлов. Отдельные сообщения `WORKER TIMEOUT` от Gunicorn могут появляться при медленных клиентах — это не ошибка приложения, воркер автоматически перезапускается.
 
 ### 6. Ручная проверка регистрации
 
-После проверки сервера можно открыть:
+Откройте в браузере:
 
+```text
 http://129.101.xxx.xx:5000
+```
 
 Используйте только тестовые данные. Поскольку демонстрационный адрес работает по HTTP без HTTPS, не вводите реальные пароли и другие конфиденциальные данные.
 
@@ -498,4 +497,4 @@ http://129.101.xxx.xx:5000
 
 GitHub: [@msh04q](https://github.com/msh04q)
 
-Репозиторий: [msh04q-flask-auth](https://github.com/msh04q/msh04q-flask-auth)
+Репозиторий: [msh04q-flask-auth](https://github.com/msh04q/flask-auth)
