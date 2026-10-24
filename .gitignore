@@ -18,3 +18,11 @@ build/
 __pycache__/
 *.pyc
 .env
+# Terraform state (содержит секреты!)
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.*
+infra/terraform/.terraform.lock.hcl
+
+# Ansible inventory (содержит IP)
+infra/ansible/inventory.ini
